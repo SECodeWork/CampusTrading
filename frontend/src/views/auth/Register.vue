@@ -32,10 +32,9 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { register } from '@/api/auth';
-import { useUserStore } from '@/store/user';
+
 
 const router = useRouter();
-const userStore = useUserStore();
 const registerFormRef = ref();
 const loading = ref(false);
 
@@ -62,7 +61,7 @@ const rules = {
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
     {
-      validator: (rule: any, value: string, callback: Function) => {
+      validator: (_rule: any, value: string, callback: Function) => {
         if (value !== registerForm.password) {
           callback(new Error('两次输入的密码不一致'));
         } else {
@@ -81,7 +80,7 @@ const handleRegister = async () => {
     
     // 调用注册接口，添加student_id参数（这里使用邮箱前缀作为学号）
     const studentId = registerForm.email.split('@')[0];
-    const response = await register({
+    await register({
       username: registerForm.username,
       email: registerForm.email,
       password: registerForm.password,
@@ -95,8 +94,8 @@ const handleRegister = async () => {
   } catch (error) {
     console.error('注册失败:', error);
     // 尝试获取更详细的错误信息
-    if (error.response && error.response.data && error.response.data.message) {
-      ElMessage.error(error.response.data.message);
+    if ((error as any).response?.data?.message) {
+      ElMessage.error((error as any).response.data.message);
     } else {
       ElMessage.error('注册失败，请检查输入信息');
     }

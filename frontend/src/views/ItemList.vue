@@ -23,6 +23,16 @@
           </el-select>
         </div>
 
+        <!-- 交易类型筛选 -->
+        <div class="filter-item">
+          <label>交易类型：</label>
+          <el-select v-model="tradeType" placeholder="全部类型" @change="handleFilterChange">
+            <el-option label="全部类型" value=""></el-option>
+            <el-option label="普通交易" value="sale"></el-option>
+            <el-option label="租赁" value="rent"></el-option>
+          </el-select>
+        </div>
+
         <!-- 价格区间筛选 -->
         <div class="filter-item">
           <label>价格：</label>
@@ -79,11 +89,13 @@
             <img :src="item.image" :alt="item.name" class="image">
             <span v-if="item.discount" class="discount-badge">{{ item.discount }}折</span>
             <span v-if="item.status === 'sold'" class="sold-badge">已售出</span>
+            <span v-if="item.tradeType === 'rent'" class="rent-badge">租赁</span>
           </div>
           <div class="item-info">
             <h3 class="item-name">{{ item.name }}</h3>
             <div class="item-price">
-              <span class="price">¥{{ item.price }}</span>
+              <span v-if="item.tradeType === 'rent'" class="price-label">￥{{ item.rental_price_day }}/天</span>
+              <span v-else class="price">¥{{ item.price }}</span>
               <span v-if="item.originalPrice" class="original-price">¥{{ item.originalPrice }}</span>
             </div>
             <div class="item-meta">
@@ -124,9 +136,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
-import { getItems, searchItems } from '@/api/item';
+import { ref } from 'vue';
+import { searchItems } from '@/api/item';
 import { formatTime } from '@/utils/common';
 
 // 定义商品类型接口
@@ -142,76 +153,42 @@ interface Item {
   status: string;
   createdAt: number;
   tags: string[];
+  tradeType?: string;
+  rental_price_day?: number;
 }
 
-// 筛选和排序参数
-const category = ref('');
-const minPrice = ref<number | null>(null);
-const maxPrice = ref<number | null>(null);
-const status = ref('');
-const sortBy = ref('');
-const searchQuery = ref('');
-const selectedTags = ref<string[]>([]);
-const currentPage = ref(1);
-const pageSize = ref(12);
-const totalItems = ref(0);
-const loading = ref(false);
-const items = ref<Item[]>([]);
+// 分页方法
+const handleSizeChange = (val: number) => {
+  pageSize.value = val;
+};
 
-// 热门标签
-const popularTags = ref([
-  '二手教材', '考研资料', '笔记本电脑', '平板', '手机', '自行车', '电动车',
-  '吉他', '篮球', '羽毛球拍', '键盘', '鼠标', '显示器', '耳机', '充电宝'
-]);
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val;
+};
 
-// 加载商品列表
-const loadItems = async () => {
-  loading.value = true;
+// 过滤条件变化方法
+const handleFilterChange = () => {
+  // 实现过滤逻辑，可能需要调用API获取数据
+};
+
+// 搜索方法
+const handleSearch = async () => {
   try {
-    const params = {
-      category: category.value,
-      minPrice: minPrice.value,
-      maxPrice: maxPrice.value,
-      status: status.value,
+    const res = await searchItems({
+      keyword: searchQuery.value,
+      page: 1,
+      pageSize: pageSize.value,
       sortBy: sortBy.value,
-      tags: selectedTags.value.join(','),
-      page: currentPage.value,
-      pageSize: pageSize.value
-    };
-
-    let response;
-    if (searchQuery.value) {
-      response = await searchItems({ keyword: searchQuery.value, ...params });
-    } else {
-      response = await getItems(params);
-    }
-
-    items.value = response.data?.items || [];
-    totalItems.value = response.data?.total || 0;
+      sortOrder: sortOrder.value
+    });
+    items.value = res.data.items;
+    totalItems.value = res.data.total;
   } catch (error) {
-    console.error('Failed to load items:', error);
-    ElMessage.error('加载商品列表失败，请稍后重试');
-    // 使用模拟数据
-    items.value = mockItems;
-    totalItems.value = mockItems.length;
-  } finally {
-    loading.value = false;
+    console.error('搜索商品失败:', error);
   }
 };
 
-// 处理筛选条件变化
-const handleFilterChange = () => {
-  currentPage.value = 1;
-  loadItems();
-};
-
-// 处理搜索
-const handleSearch = () => {
-  currentPage.value = 1;
-  loadItems();
-};
-
-// 处理标签点击
+// 标签点击方法
 const handleTagClick = (tag: string) => {
   const index = selectedTags.value.indexOf(tag);
   if (index > -1) {
@@ -219,20 +196,6 @@ const handleTagClick = (tag: string) => {
   } else {
     selectedTags.value.push(tag);
   }
-  currentPage.value = 1;
-  loadItems();
-};
-
-// 处理分页大小变化
-const handleSizeChange = (size: number) => {
-  pageSize.value = size;
-  loadItems();
-};
-
-// 处理当前页变化
-const handleCurrentChange = (current: number) => {
-  currentPage.value = current;
-  loadItems();
 };
 
 // 重置筛选条件
@@ -240,168 +203,30 @@ const resetFilters = () => {
   category.value = '';
   minPrice.value = null;
   maxPrice.value = null;
-  status.value = '';
-  sortBy.value = '';
   searchQuery.value = '';
+  sortBy.value = 'createdAt';
+  sortOrder.value = 'desc';
+  tradeType.value = '';
   selectedTags.value = [];
-  currentPage.value = 1;
-  loadItems();
 };
 
-// 组件挂载时加载数据
-onMounted(() => {
-  loadItems();
-});
-
-// 模拟商品数据
-const mockItems = [
-  {
-    id: 1,
-    name: '全新未拆封MacBook Pro 2022',
-    image: '/assets/images/macbook.jpg',
-    price: 8999,
-    originalPrice: 11999,
-    discount: 7.5,
-    location: '主校区',
-    views: 238,
-    status: 'available',
-    createdAt: Date.now() - 3600000,
-    tags: ['笔记本电脑', '苹果', '全新']
-  },
-  {
-    id: 2,
-    name: '九成新iPad Pro 2021',
-    image: '/assets/images/ipad.jpg',
-    price: 4500,
-    originalPrice: 6299,
-    location: '东校区',
-    views: 196,
-    status: 'available',
-    createdAt: Date.now() - 7200000,
-    tags: ['平板', 'iPad', '九成新']
-  },
-  {
-    id: 3,
-    name: '大学英语四六级词汇书',
-    image: '/assets/images/englishbook.jpg',
-    price: 25,
-    originalPrice: 58,
-    discount: 4.3,
-    location: '图书馆',
-    views: 152,
-    status: 'available',
-    createdAt: Date.now() - 10800000,
-    tags: ['二手教材', '英语', '四六级']
-  },
-  {
-    id: 4,
-    name: '考研数学复习全书',
-    image: '/assets/images/mathbook.jpg',
-    price: 35,
-    originalPrice: 78,
-    location: '西校区',
-    views: 128,
-    status: 'available',
-    createdAt: Date.now() - 14400000,
-    tags: ['考研资料', '数学', '复习全书']
-  },
-  {
-    id: 5,
-    name: '篮球Nike NBA官方用球',
-    image: '/assets/images/basketball.jpg',
-    price: 80,
-    originalPrice: 168,
-    location: '体育馆',
-    views: 96,
-    status: 'available',
-    createdAt: Date.now() - 18000000,
-    tags: ['体育用品', '篮球', 'Nike']
-  },
-  {
-    id: 6,
-    name: '吉他初学者套装',
-    image: '/assets/images/guitar.jpg',
-    price: 199,
-    originalPrice: 399,
-    location: '音乐楼',
-    views: 85,
-    status: 'available',
-    createdAt: Date.now() - 21600000,
-    tags: ['乐器', '吉他', '初学者']
-  },
-  {
-    id: 7,
-    name: '专业绘图板Wacom',
-    image: '/assets/images/tablet.jpg',
-    price: 450,
-    originalPrice: 899,
-    location: '设计学院',
-    views: 72,
-    status: 'sold',
-    createdAt: Date.now() - 25200000,
-    tags: ['数码电子', '绘图板', '设计']
-  },
-  {
-    id: 8,
-    name: '校园自行车',
-    image: '/assets/images/bike.jpg',
-    price: 150,
-    originalPrice: 350,
-    location: '车棚',
-    views: 65,
-    status: 'available',
-    createdAt: Date.now() - 28800000,
-    tags: ['交通工具', '自行车', '校园']
-  },
-  {
-    id: 9,
-    name: '无线耳机AirPods Pro',
-    image: '/assets/images/airpods.jpg',
-    price: 1200,
-    originalPrice: 1999,
-    location: '主校区',
-    views: 189,
-    status: 'available',
-    createdAt: Date.now() - 32400000,
-    tags: ['耳机', '无线', '苹果']
-  },
-  {
-    id: 10,
-    name: '机械键盘青轴',
-    image: '/assets/images/keyboard.jpg',
-    price: 150,
-    originalPrice: 299,
-    location: '计算机学院',
-    views: 145,
-    status: 'available',
-    createdAt: Date.now() - 36000000,
-    tags: ['键盘', '机械键盘', '游戏']
-  },
-  {
-    id: 11,
-    name: '电动车60V',
-    image: '/assets/images/ebike.jpg',
-    price: 1200,
-    originalPrice: 2500,
-    location: '东校区',
-    views: 210,
-    status: 'available',
-    createdAt: Date.now() - 39600000,
-    tags: ['交通工具', '电动车', '代步']
-  },
-  {
-    id: 12,
-    name: '羽毛球拍尤尼克斯',
-    image: '/assets/images/badminton.jpg',
-    price: 200,
-    originalPrice: 450,
-    location: '体育馆',
-    views: 89,
-    status: 'available',
-    createdAt: Date.now() - 43200000,
-    tags: ['体育用品', '羽毛球拍', '尤尼克斯']
-  }
-];
+// 筛选和排序参数
+const category = ref('');
+const minPrice = ref<number | null>(null);
+const maxPrice = ref<number | null>(null);
+const status = ref('');
+const sortBy = ref('createdAt');
+const sortOrder = ref<'desc' | 'asc' | undefined>('desc');
+const searchQuery = ref('');
+const selectedTags = ref<string[]>([]);
+const tradeType = ref('');
+const currentPage = ref(1);
+const pageSize = ref(12);
+const loading = ref(false);
+const items = ref<Item[]>([]);
+const totalItems = ref(0);
+const popularTags = ref<string[]>(['笔记本电脑', '考研资料', '自行车', '篮球', '吉他', '绘图板']);
+// ... existing code ...
 </script>
 
 <style lang="scss" scoped>
@@ -498,36 +323,38 @@ const mockItems = [
 
 .el-tag:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .items-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 24px;
   margin-bottom: 30px;
 }
 
 .item-card {
   background-color: white;
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: all 0.3s;
+  overflow: hidden;
 }
 
 .item-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
 .item-link {
   display: block;
   text-decoration: none;
-  color: #333;
+  color: inherit;
 }
 
 .item-image {
   position: relative;
+  width: 100%;
   height: 200px;
   overflow: hidden;
 }
@@ -547,83 +374,116 @@ const mockItems = [
   position: absolute;
   top: 10px;
   left: 10px;
-  background-color: #ff4d4f;
+  background-color: #ff4500;
   color: white;
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1;
 }
 
 .sold-badge {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: #999;
+  background-color: #ccc;
   color: white;
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.rent-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #52c41a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1;
 }
 
 .item-info {
-  padding: 15px;
+  padding: 16px;
 }
 
 .item-name {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .item-price {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ff4500;
+}
+
+.price-label {
   font-size: 18px;
-  font-weight: bold;
-  color: #ff4d4f;
+  font-weight: 600;
+  color: #52c41a;
 }
 
 .original-price {
   font-size: 14px;
   color: #999;
   text-decoration: line-through;
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .item-meta {
   display: flex;
-  gap: 15px;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
-.item-meta i {
-  margin-right: 4px;
+.location {
+  flex: 1;
+  min-width: 120px;
+}
+
+.views {
+  flex: 1;
+  min-width: 100px;
+}
+
+.time {
+  flex: 1;
+  min-width: 120px;
 }
 
 .item-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
 }
 
 .pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .empty-state {
   text-align: center;
-  padding: 60px 0;
+  padding: 60px 20px;
 }
 
 .empty-state .el-button {

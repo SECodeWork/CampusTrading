@@ -18,6 +18,9 @@
             <router-link to="/items" class="nav-link" :class="{ active: route.path.startsWith('/items') }">商品列表</router-link>
           </li>
           <li class="nav-item">
+            <router-link to="/rent/list" class="nav-link" :class="{ active: route.path.startsWith('/rent') }">租赁列表</router-link>
+          </li>
+          <li class="nav-item">
             <router-link to="/requests" class="nav-link" :class="{ active: route.path.startsWith('/requests') }">求购信息</router-link>
           </li>
           <li class="nav-item">
@@ -52,16 +55,19 @@
             <el-button type="primary" icon="el-icon-plus">发布</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="goToPublishItem">
-                  <i class="el-icon-goods"></i> 发布商品
-                </el-dropdown-item>
-                <el-dropdown-item @click="goToPublishRequest">
-                  <i class="el-icon-shopping-bag-1"></i> 发布求购
-                </el-dropdown-item>
-                <el-dropdown-item @click="goToCreateCompare">
-                  <i class="el-icon-s-data"></i> 创建比价
-                </el-dropdown-item>
-              </el-dropdown-menu>
+                  <el-dropdown-item @click="goToPublishItem">
+                    <i class="el-icon-goods"></i> 发布商品
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="goToPublishRent">
+                    <i class="el-icon-s-operation"></i> 发布租赁
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="goToPublishRequest">
+                    <i class="el-icon-shopping-bag-1"></i> 发布求购
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="goToCreateCompare">
+                    <i class="el-icon-s-data"></i> 创建比价
+                  </el-dropdown-item>
+                </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
@@ -92,6 +98,9 @@
                   </el-dropdown-item>
                   <el-dropdown-item @click="goToMyItems">
                     <i class="el-icon-goods"></i> 我的商品
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="goToMyRents">
+                    <i class="el-icon-s-operation"></i> 我的租赁
                   </el-dropdown-item>
                   <el-dropdown-item @click="goToMyRequests">
                     <i class="el-icon-shopping-bag-1"></i> 我的求购
@@ -146,6 +155,9 @@
           <router-link to="/items" class="mobile-nav-link" :class="{ active: route.path.startsWith('/items') }" @click="toggleMobileMenu">商品列表</router-link>
         </li>
         <li class="mobile-nav-item">
+          <router-link to="/rent/list" class="mobile-nav-link" :class="{ active: route.path.startsWith('/rent') }" @click="toggleMobileMenu">租赁列表</router-link>
+        </li>
+        <li class="mobile-nav-item">
           <router-link to="/requests" class="mobile-nav-link" :class="{ active: route.path.startsWith('/requests') }" @click="toggleMobileMenu">求购信息</router-link>
         </li>
         <li class="mobile-nav-item">
@@ -156,6 +168,9 @@
         </li>
         <li v-if="userStore.isLoggedIn" class="mobile-nav-item">
           <a href="#" class="mobile-nav-link" @click="toggleMobileMenu">发布商品</a>
+        </li>
+        <li v-if="userStore.isLoggedIn" class="mobile-nav-item">
+          <a href="#" class="mobile-nav-link" @click="toggleMobileMenu">发布租赁</a>
         </li>
         <li v-if="userStore.isLoggedIn" class="mobile-nav-item">
           <a href="#" class="mobile-nav-link" @click="toggleMobileMenu">发布求购</a>
@@ -241,6 +256,16 @@ const goToPublishRequest = () => {
 // 导航到创建比价页面
 const goToCreateCompare = () => {
   router.push('/compare/create');
+};
+
+// 导航到发布租赁页面
+const goToPublishRent = () => {
+  router.push('/rent/create');
+};
+
+// 导航到我的租赁
+const goToMyRents = () => {
+  router.push('/rent/list');
 };
 
 // 导航到消息页面
