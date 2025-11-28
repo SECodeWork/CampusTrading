@@ -57,41 +57,70 @@ const routes: Array<RouteRecordRaw> = [
   */
   
   // 商品路由
-  {
-    path: '/items',
-    name: 'ItemList',
+  { 
+    path: '/items', 
+    name: 'ItemList', 
     component: () => import('../views/ItemList.vue'),
-    meta: {
+    meta: { 
       title: '商品列表',
       requiresAuth: false
-    }
+    } 
   },
-  {
-    path: '/items/detail/:id',
-    name: 'ItemDetail',
+  { 
+    path: '/items/detail/:id', 
+    name: 'ItemDetail', 
     component: () => import('../views/ItemDetail.vue'),
-    meta: {
+    meta: { 
       title: '商品详情',
       requiresAuth: false
-    }
+    } 
   },
-  {
-    path: '/items/create',
-    name: 'ItemCreate',
+  { 
+    path: '/items/create', 
+    name: 'ItemCreate', 
     component: () => import('../views/ItemCreate.vue'),
-    meta: {
+    meta: { 
       title: '发布商品',
       requiresAuth: true
-    }
+    } 
   },
-  {
-    path: '/items/my',
-    name: 'MyItems',
+  { 
+    path: '/items/my', 
+    name: 'MyItems', 
     component: () => import('../views/ItemList.vue'),
-    meta: {
+    meta: { 
       title: '我的商品',
       requiresAuth: true
-    }
+    } 
+  },
+
+  // 租赁商品路由
+  { 
+    path: '/rent/list', 
+    name: 'RentList', 
+    component: () => import('../views/RentList.vue'),
+    meta: { 
+      title: '租赁列表',
+      requiresAuth: false
+    } 
+  },
+  { 
+    path: '/rent/create', 
+    name: 'RentCreate', 
+    component: () => import('../views/ItemCreate.vue'),
+    meta: { 
+      title: '发布租赁',
+      requiresAuth: true
+    } 
+  },
+  { 
+    path: '/rent/detail/:id', 
+    name: 'RentDetail', 
+    component: () => import('../views/RentDetail.vue'),
+    meta: { 
+      title: '租赁详情',
+      requiresAuth: false
+    } 
   },
   
   // 求购路由

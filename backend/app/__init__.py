@@ -67,5 +67,9 @@ def create_app(config_name=None):
     # 管理员模块
     from app.modules.admin.routes import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+
+    # 租赁模块
+    from app.modules.rental.routes import rental_bp
+    app.register_blueprint(rental_bp, url_prefix='/api/rental')
     
     return app

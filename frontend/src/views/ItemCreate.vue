@@ -2,8 +2,8 @@
   <div class="item-create-container">
     <!-- 页面标题 -->
     <div class="page-header">
-      <h1>发布商品</h1>
-      <p>快速发布您的闲置物品，让更多同学看到</p>
+      <h1>{{ isRentPage ? '发布租赁' : '发布商品' }}</h1>
+      <p>{{ isRentPage ? '快速发布您的租赁物品，让更多同学看到' : '快速发布您的闲置物品，让更多同学看到' }}</p>
     </div>
 
     <!-- 发布表单 -->
@@ -25,14 +25,47 @@
           </el-select>
         </el-form-item>
 
-        <!-- 价格信息 -->
-        <el-form-item label="出售价格" prop="price">
-          <el-input-number v-model="itemForm.price" :min="0" :precision="2" placeholder="请输入出售价格" />
+        <!-- 交易类型 -->
+        <el-form-item label="交易类型" prop="transaction_type">
+          <el-radio-group v-model="itemForm.transaction_type">
+            <el-radio-button label="出售">出售</el-radio-button>
+            <el-radio-button label="出租">出租</el-radio-button>
+          </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="原价" prop="originalPrice">
-          <el-input-number v-model="itemForm.originalPrice" :min="0" :precision="2" placeholder="请输入原价（选填）" />
-        </el-form-item>
+        <!-- 价格信息 - 出售 -->
+        <div v-if="itemForm.transaction_type === 'sale'">
+          <el-form-item label="出售价格" prop="price">
+            <el-input-number v-model="itemForm.price" :min="0" :precision="2" placeholder="请输入出售价格" />
+          </el-form-item>
+
+          <el-form-item label="原价" prop="originalPrice">
+            <el-input-number v-model="itemForm.originalPrice" :min="0" :precision="2" placeholder="请输入原价（选填）" />
+          </el-form-item>
+        </div>
+
+        <!-- 价格信息 - 出租 -->
+        <div v-if="itemForm.transaction_type === 'rent'">
+          <el-form-item label="日租金" prop="rental_price_day">
+            <el-input-number v-model="itemForm.rental_price_day" :min="0" :precision="2" placeholder="请输入日租金" />
+          </el-form-item>
+
+          <el-form-item label="周租金" prop="rental_price_week">
+            <el-input-number v-model="itemForm.rental_price_week" :min="0" :precision="2" placeholder="请输入周租金" />
+          </el-form-item>
+
+          <el-form-item label="月租金" prop="rental_price_month">
+            <el-input-number v-model="itemForm.rental_price_month" :min="0" :precision="2" placeholder="请输入月租金" />
+          </el-form-item>
+
+          <el-form-item label="押金" prop="deposit">
+            <el-input-number v-model="itemForm.deposit" :min="0" :precision="2" placeholder="请输入押金" />
+          </el-form-item>
+
+          <el-form-item label="最大租赁天数" prop="max_rental_days">
+            <el-input-number v-model="itemForm.max_rental_days" :min="1" placeholder="请输入最大租赁天数" />
+          </el-form-item>
+        </div>
 
         <!-- 商品状态 -->
         <el-form-item label="新旧程度" prop="condition">
@@ -191,14 +224,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { createItem, itemAPI } from '@/api/item';
 import { Plus, Delete } from '@element-plus/icons-vue';
 
 // 路由
 const router = useRouter();
+const route = useRoute();
 
 // 表单引用
 const itemFormRef = ref<any>();
@@ -208,6 +242,8 @@ const fileList = ref<Array<any>>([]);
 const dialogVisible = ref(false);
 const dialogImageUrl = ref('');
 const uploadedFiles = ref<File[]>([]);
+// 判断是否是租赁页面
+const isRentPage = computed(() => route.name === 'RentCreate');
 
 // 表单数据
 const itemForm = reactive({
@@ -215,6 +251,13 @@ const itemForm = reactive({
   category: '',
   price: 0,
   originalPrice: 0,
+  // 租赁相关字段
+  transaction_type: isRentPage.value ? 'rent' : 'sale',
+  rental_price_day: 0,
+  rental_price_week: 0,
+  rental_price_month: 0,
+  deposit: 0,
+  max_rental_days: 30,
   condition: '九成新',
   description: '',
   location: '',
@@ -240,9 +283,30 @@ const itemRules = reactive({
   category: [
     { required: true, message: '请选择商品分类', trigger: 'change' }
   ],
+  transaction_type: [
+    { required: true, message: '请选择交易类型', trigger: 'change' }
+  ],
   price: [
-    { required: true, message: '请输入出售价格', trigger: 'blur' },
+    { required: (() => itemForm.transaction_type === 'sale'), message: '请输入出售价格', trigger: 'blur' },
     { type: 'number', min: 0.01, message: '价格必须大于0', trigger: 'blur' }
+  ],
+  // 租赁相关验证
+  rental_price_day: [
+    { required: (() => itemForm.transaction_type === 'rent'), message: '请输入日租金', trigger: 'blur' },
+    { type: 'number', min: 0.01, message: '日租金必须大于0', trigger: 'blur' }
+  ],
+  rental_price_week: [
+    { type: 'number', min: 0, message: '周租金必须大于等于0', trigger: 'blur' }
+  ],
+  rental_price_month: [
+    { type: 'number', min: 0, message: '月租金必须大于等于0', trigger: 'blur' }
+  ],
+  deposit: [
+    { type: 'number', min: 0, message: '押金必须大于等于0', trigger: 'blur' }
+  ],
+  max_rental_days: [
+    { required: (() => itemForm.transaction_type === 'rent'), message: '请输入最大租赁天数', trigger: 'blur' },
+    { type: 'number', min: 1, message: '最大租赁天数必须大于0', trigger: 'blur' }
   ],
   condition: [
     { required: true, message: '请选择新旧程度', trigger: 'change' }
@@ -390,17 +454,39 @@ const submitForm = async () => {
     }
     
     // 创建商品数据
-    const itemData = {
+    const itemData: any = {
       title: itemForm.name,
       description: itemForm.description,
-      price: Number(itemForm.price),
-      originalPrice: itemForm.originalPrice ? Number(itemForm.originalPrice) : undefined,
       categoryId: itemForm.category,
       tags: itemForm.tags.length > 0 ? itemForm.tags : undefined,
       images: imageUrls,
       location: itemForm.location || undefined,
-      status: 'available'
+      status: 'available',
+      transaction_type: itemForm.transaction_type
     };
+    
+    // 出售商品参数
+    if (itemForm.transaction_type === 'sale') {
+      itemData.price = Number(itemForm.price);
+      if (itemForm.originalPrice) {
+        itemData.originalPrice = Number(itemForm.originalPrice);
+      }
+    }
+    
+    // 租赁商品参数
+    if (itemForm.transaction_type === 'rent') {
+      itemData.rental_price_day = Number(itemForm.rental_price_day);
+      if (itemForm.rental_price_week) {
+        itemData.rental_price_week = Number(itemForm.rental_price_week);
+      }
+      if (itemForm.rental_price_month) {
+        itemData.rental_price_month = Number(itemForm.rental_price_month);
+      }
+      if (itemForm.deposit) {
+        itemData.deposit = Number(itemForm.deposit);
+      }
+      itemData.max_rental_days = Number(itemForm.max_rental_days);
+    }
     
     // 提交数据
     const response = await createItem(itemData);
@@ -411,7 +497,7 @@ const submitForm = async () => {
     if (error.response?.data?.message) {
       ElMessage.error(error.response.data.message);
     } else {
-      ElMessage.error('发布商品失败，请稍后重试');
+      ElMessage.error(isRentPage.value ? '发布租赁失败，请稍后重试' : '发布商品失败，请稍后重试');
     }
   } finally {
     loading.value = false;
