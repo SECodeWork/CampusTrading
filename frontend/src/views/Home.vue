@@ -18,7 +18,11 @@
     <div class="feature-nav">
       <div class="feature-item" v-for="feature in features" :key="feature.id">
         <router-link :to="feature.route">
-          <div class="feature-icon"><i :class="feature.icon"></i></div>
+
+          <div class="feature-icon">
+            <el-icon :size="32"><component :is="feature.icon" /></el-icon>
+          </div>
+>>>>>>> 43a95c22732f68082b5f5c17b4a1de71e0c1ab47
           <div class="feature-text">{{ feature.name }}</div>
         </router-link>
       </div>
@@ -28,7 +32,7 @@
     <section class="section-container">
       <div class="section-header">
         <h2 class="section-title">热门商品</h2>
-        <router-link to="/items" class="section-more">查看更多 <i class="el-icon-arrow-right"></i></router-link>
+        <router-link to="/items" class="section-more">查看更多 <el-icon><ArrowRight /></el-icon></router-link>
       </div>
       <div class="item-list">
         <div class="item-card" v-for="item in hotItems" :key="item.id">
@@ -44,8 +48,8 @@
                 <span v-if="item.originalPrice" class="original-price">¥{{ item.originalPrice }}</span>
               </div>
               <div class="item-meta">
-                <span class="location"><i class="el-icon-location"></i>{{ item.location }}</span>
-                <span class="views"><i class="el-icon-view"></i>{{ item.views }}</span>
+                <span class="location"><el-icon><Location /></el-icon>{{ item.location }}</span>
+                <span class="views"><el-icon><View /></el-icon>{{ item.views }}</span>
               </div>
             </div>
           </router-link>
@@ -57,7 +61,7 @@
     <section class="section-container bg-gray">
       <div class="section-header">
         <h2 class="section-title">最新求购</h2>
-        <router-link to="/requests" class="section-more">查看更多 <i class="el-icon-arrow-right"></i></router-link>
+        <router-link to="/requests" class="section-more">查看更多 <el-icon><ArrowRight /></el-icon></router-link>
       </div>
       <div class="request-list">
         <router-link :to="`/requests/detail/${request.id}`" class="request-item" v-for="request in latestRequests" :key="request.id">
@@ -80,7 +84,7 @@
     <section class="section-container">
       <div class="section-header">
         <h2 class="section-title">热门比价</h2>
-        <router-link to="/compare" class="section-more">查看更多 <i class="el-icon-arrow-right"></i></router-link>
+        <router-link to="/compare" class="section-more">查看更多 <el-icon><ArrowRight /></el-icon></router-link>
       </div>
       <div class="compare-list">
         <div class="compare-card" v-for="task in hotCompareTasks" :key="task.id">
@@ -100,7 +104,7 @@
             </div>
             <div class="compare-meta">
               <span class="creator">by {{ task.creator }}</span>
-              <span class="likes"><i class="el-icon-thumb"></i>{{ task.likes }}</span>
+              <span class="likes"><el-icon><Star /></el-icon>{{ task.likes }}</span>
             </div>
           </router-link>
         </div>
@@ -110,7 +114,11 @@
     <!-- 平台优势区域 -->
     <section class="advantages-section">
       <div class="advantage-item" v-for="advantage in advantages" :key="advantage.id">
-        <div class="advantage-icon"><i :class="advantage.icon"></i></div>
+
+        <div class="advantage-icon">
+          <el-icon :size="48"><component :is="advantage.icon" /></el-icon>
+        </div>
+>>>>>>> 43a95c22732f68082b5f5c17b4a1de71e0c1ab47
         <h3 class="advantage-title">{{ advantage.title }}</h3>
         <p class="advantage-description">{{ advantage.description }}</p>
       </div>
@@ -129,8 +137,23 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { formatTime } from '@/utils/common';
-import { getHotItems, getLatestRequests, getPlatformStats } from '@/api/item';
-import { getHotCompareTasks } from '@/api/compare';
+
+
+import { getHotItems, getLatestRequests, getHotCompareTasks, getPlatformStats } from '@/api/item';
+import {
+  CirclePlus,
+  QuestionFilled,
+  Sort,
+  User,
+  Lock,
+  Lightning,
+  PriceTag,
+  Headset,
+  ArrowRight,
+  Location,
+  View,
+  Star
+} from '@element-plus/icons-vue';
 
 // 轮播图数据
 const carouselItems = ref([
@@ -156,10 +179,11 @@ const carouselItems = ref([
 
 // 功能导航数据
 const features = ref([
-  { id: 1, name: '发布商品', icon: 'el-icon-plus-circle', route: '/items/create' },
-  { id: 2, name: '发布求购', icon: 'el-icon-question', route: '/requests/create' },
-  { id: 3, name: '发起比价', icon: 'el-icon-sort-down', route: '/compare/create' },
-  { id: 4, name: '个人中心', icon: 'el-icon-user', route: '/user/profile' }
+
+  { id: 1, name: '发布商品', icon: CirclePlus, route: '/items/create' },
+  { id: 2, name: '发布求购', icon: QuestionFilled, route: '/requests/create' },
+  { id: 3, name: '发起比价', icon: Sort, route: '/compare/create' },
+  { id: 4, name: '个人中心', icon: User, route: '/user/profile' }
 ]);
 
 // 类型定义
@@ -211,25 +235,32 @@ const hotCompareTasks = ref<CompareTask[]>([]);
 const advantages = ref([
   {
     id: 1,
-    icon: 'el-icon-shield',
+
+    icon: Lock,
     title: '安全交易',
     description: '实名认证，交易保障，让您放心购买'
   },
   {
     id: 2,
-    icon: 'el-icon-flashlight',
+
+    icon: Lightning,
+
     title: '快速发布',
     description: '简单几步，轻松发布您的闲置物品'
   },
   {
     id: 3,
-    icon: 'el-icon-price-tag',
+
+    icon: PriceTag,
+
     title: '高性价比',
     description: '校园内交易，省去中间环节，价格更优惠'
   },
   {
     id: 4,
-    icon: 'el-icon-headset',
+
+    icon: Headset,
+
     title: '贴心服务',
     description: '专业客服团队，7x12小时为您服务'
   }

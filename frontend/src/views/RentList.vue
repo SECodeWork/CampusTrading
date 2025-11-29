@@ -85,7 +85,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getRentItems } from '@/api/rent';
 
 // 搜索和筛选条件
 const searchKeyword = ref('');

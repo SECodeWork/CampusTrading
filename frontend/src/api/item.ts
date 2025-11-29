@@ -13,6 +13,7 @@ export const itemAPI = {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     status?: string;
+    transaction_type?: 'sale' | 'rent';
   }) => {
     return request.get('/items', { params });
   },
@@ -26,13 +27,20 @@ export const itemAPI = {
   createItem: (itemData: {
     title: string;
     description: string;
-    price: number;
+    price?: number;
     originalPrice?: number;
     categoryId: string;
     tags?: string[];
     images: string[];
     location?: string;
     status?: string;
+    // 租赁相关字段
+    transaction_type?: 'sale' | 'rent';
+    rental_price_day?: number;
+    rental_price_week?: number;
+    rental_price_month?: number;
+    deposit?: number;
+    max_rental_days?: number;
   }) => {
     return request.post('/items', itemData);
   },
@@ -48,6 +56,13 @@ export const itemAPI = {
     images?: string[];
     location?: string;
     status?: string;
+    // 租赁相关字段
+    transaction_type?: 'sale' | 'rent';
+    rental_price_day?: number;
+    rental_price_week?: number;
+    rental_price_month?: number;
+    deposit?: number;
+    max_rental_days?: number;
   }) => {
     return request.put(`/items/${id}`, itemData);
   },
@@ -108,6 +123,7 @@ export const itemAPI = {
     priceMax?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    transaction_type?: 'sale' | 'rent';
   }) => {
     return request.get('/items/search', { params });
   },

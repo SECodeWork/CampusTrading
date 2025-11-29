@@ -35,6 +35,39 @@ export interface Item {
   user?: User;
 }
 
+// 租赁商品类型
+export interface RentalItem {
+  id: number;
+  name: string;
+  image: string;
+  images: string[];
+  rental_price_day: number;
+  rental_price_week?: number;
+  rental_price_month?: number;
+  deposit: number;
+  location: string;
+  status: 'available' | 'rented' | 'maintenance';
+  viewCount: number;
+  favoriteCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  user?: User;
+  max_rental_days?: number;
+  reviewRate: number;
+}
+
+// 租赁申请参数类型
+export interface RentalApplicationParams {
+  item_id: string;
+  rental_days: number;
+  start_date: string;
+  end_date: string;
+  total_amount: number;
+  deposit: number;
+}
+
 // 求购类型
 export interface RequestItem {
   id: string;

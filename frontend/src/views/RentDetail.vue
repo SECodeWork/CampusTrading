@@ -29,8 +29,14 @@
         <div class="item-price-section">
           <div class="price">
             <span class="currency">¥</span>
-            <span class="price-value">{{ rentItem.price }}</span>
+            <span class="price-value">{{ rentItem.rental_price_day }}</span>
             <span class="price-unit">/天</span>
+            <span v-if="rentItem.rental_price_week" class="price-option">
+              ¥{{ rentItem.rental_price_week }}/周
+            </span>
+            <span v-if="rentItem.rental_price_month" class="price-option">
+              ¥{{ rentItem.rental_price_month }}/月
+            </span>
           </div>
           <div class="deposit">押金: ¥{{ rentItem.deposit }}</div>
         </div>
@@ -139,7 +145,7 @@
           <router-link :to="`/rent/detail/${item.id}`" class="related-link">
             <img :src="item.image" :alt="item.name" class="related-image">
             <div class="related-name">{{ item.name }}</div>
-            <div class="related-price">¥{{ item.price }}/天</div>
+            <div class="related-price">¥{{ item.rental_price_day }}/天</div>
           </router-link>
         </div>
       </div>
@@ -150,7 +156,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getRentItemDetail } from '@/api/rent';
+import { getRentItemDetail, applyForRental as applyForRentalAPI } from '@/api/rent';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const route = useRoute();
 const router = useRouter();
@@ -162,7 +169,9 @@ interface RentItemDetail {
   name: string;
   image: string;
   images: string[];
-  price: number;
+  rental_price_day: number;
+  rental_price_week?: number;
+  rental_price_month?: number;
   deposit: number;
   location: string;
   available: boolean;
@@ -175,34 +184,8 @@ interface RentItemDetail {
   ownerRating: number;
   rentalCount: number;
   reviewRate: number;
+  max_rental_days?: number;
 }
-
-const rentItem = ref<RentItemDetail>({
-  id: 0,
-  name: '',
-  image: '',
-  images: [],
-  price: 0,
-  deposit: 0,
-  location: '',
-  available: false,
-  category: '',
-  description: '',
-  createTime: '',
-  ownerId: 0,
-  ownerName: '',
-  ownerAvatar: '',
-  ownerRating: 0,
-  rentalCount: 0,
-  reviewRate: 0
-});
-
-// 租赁时间
-const startDate = ref<string>('');
-const endDate = ref<string>('');
-
-// 相关推荐物品
-const relatedItems = ref<any[]>([]);
 
 // 模拟租赁详情数据
 const mockRentItemDetail: RentItemDetail = {
@@ -214,7 +197,9 @@ const mockRentItemDetail: RentItemDetail = {
     '/assets/images/camera2.jpg',
     '/assets/images/camera3.jpg'
   ],
-  price: 150,
+  rental_price_day: 150,
+  rental_price_week: 900,
+  rental_price_month: 3000,
   deposit: 3000,
   location: '主校区',
   available: true,
@@ -238,8 +223,9 @@ const mockRentItemDetail: RentItemDetail = {
   ownerAvatar: '/assets/images/avatar1.jpg',
   ownerRating: 4.8,
   rentalCount: 12,
-  reviewRate: 96
-};
+  reviewRate: 96,
+  max_rental_days: 30
+}
 
 // 模拟相关推荐数据
 const mockRelatedItems = [
@@ -247,37 +233,99 @@ const mockRelatedItems = [
     id: 2,
     name: '专业绘图板Wacom',
     image: '/assets/images/tablet.jpg',
-    price: 50
+    images: ['/assets/images/tablet.jpg'],
+    rental_price_day: 50,
+    rental_price_week: 300,
+    rental_price_month: 1000,
+    deposit: 500,
+    location: '主校区',
+    available: true,
+    category: 'electronics',
+    description: '专业绘图板',
+    createTime: '2023-05-20T10:00:00',
+    ownerId: 102,
+    ownerName: '创意设计小李',
+    ownerAvatar: '/assets/images/avatar2.jpg',
+    ownerRating: 4.7,
+    rentalCount: 8,
+    reviewRate: 94
   },
   {
     id: 3,
     name: '无人机DJI Mini 3',
     image: '/assets/images/drone.jpg',
-    price: 200
+    images: ['/assets/images/drone.jpg'],
+    rental_price_day: 200,
+    rental_price_week: 1200,
+    rental_price_month: 4000,
+    deposit: 2000,
+    location: '东校区',
+    available: true,
+    category: 'electronics',
+    description: '入门级无人机',
+    createTime: '2023-06-05T14:30:00',
+    ownerId: 103,
+    ownerName: '航拍爱好者小王',
+    ownerAvatar: '/assets/images/avatar3.jpg',
+    ownerRating: 4.9,
+    rentalCount: 5,
+    reviewRate: 98
   },
   {
     id: 4,
     name: '拍立得相机富士Instax',
     image: '/assets/images/instax.jpg',
-    price: 30
+    images: ['/assets/images/instax.jpg'],
+    rental_price_day: 30,
+    rental_price_week: 180,
+    rental_price_month: 600,
+    deposit: 200,
+    location: '西校区',
+    available: true,
+    category: 'electronics',
+    description: '拍立得相机',
+    createTime: '2023-07-10T09:15:00',
+    ownerId: 104,
+    ownerName: '摄影爱好者小赵',
+    ownerAvatar: '/assets/images/avatar4.jpg',
+    ownerRating: 4.6,
+    rentalCount: 15,
+    reviewRate: 92
   },
   {
     id: 5,
     name: '三脚架曼富图',
     image: '/assets/images/tripod.jpg',
-    price: 40
+    images: ['/assets/images/tripod.jpg'],
+    rental_price_day: 40,
+    rental_price_week: 240,
+    rental_price_month: 800,
+    deposit: 300,
+    location: '主校区',
+    available: true,
+    category: 'electronics',
+    description: '专业三脚架',
+    createTime: '2023-08-15T16:45:00',
+    ownerId: 105,
+    ownerName: '摄影爱好者小张',
+    ownerAvatar: '/assets/images/avatar1.jpg',
+    ownerRating: 4.8,
+    rentalCount: 10,
+    reviewRate: 95
   }
 ];
+
+// 响应式变量声明
+const rentItem = ref<RentItemDetail>(mockRentItemDetail);
+const relatedItems = ref<RentItemDetail[]>(mockRelatedItems);
+const startDate = ref<string>('');
+const endDate = ref<string>('');
 
 // 获取租赁物品详情
 const loadRentItemDetail = async () => {
   try {
-    // 在实际项目中，这里应该调用API获取数据
-    // const res = await getRentItemDetail(itemId.value);
-    // rentItem.value = res.data;
-    
-    // 使用模拟数据
-    rentItem.value = { ...mockRentItemDetail, id: itemId.value || 1 };
+    const res = await getRentItemDetail(itemId.value.toString());
+    rentItem.value = res.data;
     
     // 加载相关推荐
     relatedItems.value = mockRelatedItems;
@@ -325,14 +373,37 @@ const getRentalDays = () => {
 // 计算租赁总价
 const getTotalPrice = () => {
   const days = getRentalDays();
-  return days * rentItem.value.price;
+  const item = rentItem.value;
+  let total = 0;
+  
+  if (days <= 0) return 0;
+  
+  // 根据租赁天数选择最合适的价格
+  if (days >= 30 && item.rental_price_month) {
+    const months = Math.floor(days / 30);
+    const remainingDays = days % 30;
+    total = (months * item.rental_price_month) + (remainingDays * item.rental_price_day);
+  } else if (days >= 7 && item.rental_price_week) {
+    const weeks = Math.floor(days / 7);
+    const remainingDays = days % 7;
+    total = (weeks * item.rental_price_week) + (remainingDays * item.rental_price_day);
+  } else {
+    total = days * item.rental_price_day;
+  }
+  
+  return total;
 };
 
 // 检查是否可以申请租赁
 const canApply = computed(() => {
+  const days = getRentalDays();
+  const item = rentItem.value;
+  
   return startDate.value && endDate.value && 
          new Date(startDate.value) >= new Date() && 
-         new Date(endDate.value) > new Date(startDate.value);
+         new Date(endDate.value) > new Date(startDate.value) &&
+         // 检查是否超过最大租赁天数
+         (!item.max_rental_days || days <= item.max_rental_days);
 });
 
 // 联系出租人
@@ -351,20 +422,32 @@ const applyForRental = () => {
   }
   
   ElMessageBox.confirm(
-    `您确定要租赁${rentItem.value.name}，从${startDate.value}至${endDate.value}，共${getRentalDays()}天，总价¥${getTotalPrice()}，押金¥${rentItem.value.deposit}吗？`,
+    `您确定要租赁${rentItem.value.name}，从${startDate.value}至${endDate.value}，共${getRentalDays()}天，押金¥${rentItem.value.deposit}吗？`,
     '确认租赁',
     {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'info'
     }
-  ).then(() => {
-    // 实际项目中，这里应该调用API提交租赁申请
-    ElMessage.success('租赁申请已提交，请等待出租人确认');
-    // 跳转到租赁订单页面
-    setTimeout(() => {
-      router.push('/rent/orders');
-    }, 1500);
+  ).then(async () => {
+    try {
+      await applyForRentalAPI({
+        item_id: rentItem.value.id.toString(),
+        rental_days: getRentalDays(),
+        start_date: startDate.value,
+        end_date: endDate.value,
+        total_amount: getTotalPrice(),
+        deposit: rentItem.value.deposit
+      });
+      ElMessage.success('租赁申请已提交，请等待出租人确认');
+      // 跳转到租赁订单页面
+      setTimeout(() => {
+        router.push('/rent/orders');
+      }, 1500);
+    } catch (error) {
+      console.error('提交租赁申请失败:', error);
+      ElMessage.error('提交租赁申请失败，请稍后重试');
+    }
   }).catch(() => {
     ElMessage.info('已取消租赁申请');
   });
