@@ -4,9 +4,11 @@ from app import db
 
 class PriceCompare(db.Model):
     """比价记录模型"""
+    __tablename__ = 'price_compares'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     original_link = db.Column(db.String(500), nullable=False)
     
     # 比价结果
@@ -42,6 +44,8 @@ class PriceCompare(db.Model):
 
 class CompareTask(db.Model):
     """比价任务模型"""
+    __tablename__ = 'compare_tasks'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     link = db.Column(db.String(500), nullable=False)
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待处理), processing(处理中), completed(已完成), failed(失败)

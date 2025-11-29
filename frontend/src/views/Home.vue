@@ -18,7 +18,7 @@
     <div class="feature-nav">
       <div class="feature-item" v-for="feature in features" :key="feature.id">
         <router-link :to="feature.route">
-          <div class="feature-icon">{{ feature.icon }}</div>
+          <div class="feature-icon"><i :class="feature.icon"></i></div>
           <div class="feature-text">{{ feature.name }}</div>
         </router-link>
       </div>
@@ -110,7 +110,7 @@
     <!-- 平台优势区域 -->
     <section class="advantages-section">
       <div class="advantage-item" v-for="advantage in advantages" :key="advantage.id">
-        <div class="advantage-icon">{{ advantage.icon }}</div>
+        <div class="advantage-icon"><i :class="advantage.icon"></i></div>
         <h3 class="advantage-title">{{ advantage.title }}</h3>
         <p class="advantage-description">{{ advantage.description }}</p>
       </div>
@@ -129,7 +129,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { formatTime } from '@/utils/common';
-import { getHotItems, getLatestRequests, getHotCompareTasks, getPlatformStats } from '@/api/item';
+import { getHotItems, getLatestRequests, getPlatformStats } from '@/api/item';
+import { getHotCompareTasks } from '@/api/compare';
 
 // 轮播图数据
 const carouselItems = ref([
@@ -155,10 +156,10 @@ const carouselItems = ref([
 
 // 功能导航数据
 const features = ref([
-  { id: 1, name: '发布商品', icon: '<i class="el-icon-plus-circle"></i>', route: '/items/create' },
-  { id: 2, name: '发布求购', icon: '<i class="el-icon-question"></i>', route: '/requests/create' },
-  { id: 3, name: '发起比价', icon: '<i class="el-icon-sort-down"></i>', route: '/compare/create' },
-  { id: 4, name: '个人中心', icon: '<i class="el-icon-user"></i>', route: '/user/profile' }
+  { id: 1, name: '发布商品', icon: 'el-icon-plus-circle', route: '/items/create' },
+  { id: 2, name: '发布求购', icon: 'el-icon-question', route: '/requests/create' },
+  { id: 3, name: '发起比价', icon: 'el-icon-sort-down', route: '/compare/create' },
+  { id: 4, name: '个人中心', icon: 'el-icon-user', route: '/user/profile' }
 ]);
 
 // 类型定义
@@ -210,25 +211,25 @@ const hotCompareTasks = ref<CompareTask[]>([]);
 const advantages = ref([
   {
     id: 1,
-    icon: '<i class="el-icon-shield"></i>',
+    icon: 'el-icon-shield',
     title: '安全交易',
     description: '实名认证，交易保障，让您放心购买'
   },
   {
     id: 2,
-    icon: '<i class="el-icon-flashlight"></i>',
+    icon: 'el-icon-flashlight',
     title: '快速发布',
     description: '简单几步，轻松发布您的闲置物品'
   },
   {
     id: 3,
-    icon: '<i class="el-icon-price-tag"></i>',
+    icon: 'el-icon-price-tag',
     title: '高性价比',
     description: '校园内交易，省去中间环节，价格更优惠'
   },
   {
     id: 4,
-    icon: '<i class="el-icon-headset"></i>',
+    icon: 'el-icon-headset',
     title: '贴心服务',
     description: '专业客服团队，7x12小时为您服务'
   }
@@ -253,9 +254,20 @@ onMounted(async () => {
     const requestsRes = await getLatestRequests({ limit: 5 });
     latestRequests.value = requestsRes.data || mockLatestRequests;
     
-    // 加载热门比价任务
-    const compareRes = await getHotCompareTasks({ limit: 4 });
-    hotCompareTasks.value = compareRes.data || mockHotCompareTasks;
+    // 加载热门比价任务（修正路径为正确的API端点）
+    try {
+      const response = await fetch('/api/compare/hot?limit=4');
+      if (response.ok) {
+        const data = await response.json();
+        hotCompareTasks.value = data.data || mockHotCompareTasks;
+      } else {
+        console.warn('比价任务API请求失败，使用模拟数据');
+        hotCompareTasks.value = mockHotCompareTasks;
+      }
+    } catch (e) {
+      console.warn('比价任务API请求异常，使用模拟数据', e);
+      hotCompareTasks.value = mockHotCompareTasks;
+    }
     
     // 加载平台统计数据
     const statsRes = await getPlatformStats();

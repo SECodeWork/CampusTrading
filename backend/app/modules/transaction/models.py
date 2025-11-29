@@ -4,10 +4,13 @@ from app import db
 
 class Transaction(db.Model):
     """交易模型"""
+    __tablename__ = 'transactions'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    buyer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    buyer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     amount = db.Column(db.Integer, nullable=False)  # 交易金额（虚拟币）
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待付款), paid(已付款), completed(已完成), canceled(已取消), disputed(纠纷中)
     transaction_type = db.Column(db.String(20), nullable=False)  # sale(出售), rent(出租)
@@ -67,9 +70,11 @@ class Transaction(db.Model):
 
 class Offer(db.Model):
     """还价模型"""
+    __tablename__ = 'offers'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
-    buyer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    buyer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     offer_amount = db.Column(db.Integer, nullable=False)  # 还价金额
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待回应), accepted(已接受), rejected(已拒绝)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -93,17 +98,17 @@ class Offer(db.Model):
 
 class Complaint(db.Model):
     """投诉模型"""
+    __tablename__ = 'complaints'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    complainant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    defendant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=False)
+    complainant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    defendant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transactions.id'), nullable=False)
     reason = db.Column(db.Text, nullable=False)  # 投诉原因
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待处理), processed(已处理), resolved(已解决)
     admin_comment = db.Column(db.Text)  # 管理员处理意见
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     processed_at = db.Column(db.DateTime)  # 处理时间
     
-    # 关系
-    complainant = db.relationship('User', foreign_keys=[complainant_id])
-    defendant = db.relationship('User', foreign_keys=[defendant_id])
-    transaction = db.relationship('Transaction', backref='complaints')
+    # 暂时移除所有关系定义以解决外键歧义问题

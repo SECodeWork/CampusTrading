@@ -123,22 +123,23 @@ export const itemAPI = {
 
   // 获取热门商品
   getHotItems: (params?: { limit?: number }) => {
-    return request.get('/items/hot', { params });
+    return request.get('/item/hot', { params });
   },
 
   // 获取最新求购
   getLatestRequests: (params?: { limit?: number }) => {
-    return request.get('/requests/latest', { params });
+    return request.get('/request/latest', { params });
   },
 
   // 获取热门比价任务
   getHotCompareTasks: (params?: { limit?: number }) => {
-    return request.get('/compare/hot', { params });
+    // 强制使用直接URL拼接，避免任何axios参数处理问题
+    return request.get('/compare/tasks/hot?limit=4');
   },
 
   // 获取平台统计数据
   getPlatformStats: () => {
-    return request.get('/platform/stats');
+    return request.get('/item/platform/stats');
   },
 
   // 获取新品上架

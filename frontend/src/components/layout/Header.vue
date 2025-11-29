@@ -41,7 +41,9 @@
             @keyup.enter="handleSearch"
           >
             <template #append>
-              <el-button icon="el-icon-search" @click="handleSearch"></el-button>
+              <el-button @click="handleSearch">
+                <el-icon><Search /></el-icon>
+              </el-button>
             </template>
           </el-input>
         </div>
@@ -188,6 +190,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
 import { ElMessage } from 'element-plus';
+import { Search } from '@element-plus/icons-vue';
 
 // 路由和状态管理
 const router = useRouter();
@@ -322,11 +325,12 @@ const handleMobileRegister = () => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  min-height: 60px;
+  height: auto;
 }
 
 /* Logo样式 */
@@ -396,20 +400,71 @@ const handleMobileRegister = () => {
   background-color: #409eff;
 }
 
+/* 响应式布局 */
+@media (max-width: 1024px) {
+  .header-container {
+    padding: 8px 15px;
+  }
+  
+  .search-input {
+    max-width: 180px;
+  }
+  
+  .nav-item {
+    margin: 0 10px;
+  }
+  
+  .nav-link {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    max-width: 150px;
+  }
+  
+  .logo-text {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-actions {
+    gap: 10px;
+  }
+  
+  .search-input {
+    width: 150px;
+  }
+  
+  .nav-item {
+    margin: 0 5px;
+  }
+  
+  .nav-link {
+    font-size: 13px;
+  }
+}
+
 /* 右侧功能区样式 */
 .header-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  white-space: nowrap;
 }
 
 .search-container {
-  margin-right: 15px;
   position: relative;
+  white-space: nowrap;
 }
 
 .search-input {
   width: 200px;
   height: 36px;
+  flex-shrink: 0;
 }
 
 .publish-container {

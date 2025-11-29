@@ -68,6 +68,7 @@ class ItemReview(db.Model):
 class Complaint(db.Model):
     """投诉模型"""
     __tablename__ = 'complaints'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -80,8 +81,8 @@ class Complaint(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # 关系
-    user = db.relationship('User', backref='complaints')
+    # 暂时移除user关系以解决冲突问题
+    # user = db.relationship('User', backref='complaints')
     admin = db.relationship('AdminUser', backref='handled_complaints')
     
     def to_dict(self):
@@ -130,102 +131,19 @@ class Complaint(db.Model):
         return result
 
 
-class School(db.Model):
-    """学校模型"""
-    __tablename__ = 'schools'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    province = db.Column(db.String(50))
-    city = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # 关系
-    campuses = db.relationship('Campus', backref='school', lazy=True)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'province': self.province,
-            'city': self.city,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
+# 从user模块导入School模型
+from app.modules.user.models import School
 
 
-class Campus(db.Model):
-    """校区模型"""
-    __tablename__ = 'campuses'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    address = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'school_id': self.school_id,
-            'school_name': self.school.name if self.school else None,
-            'name': self.name,
-            'address': self.address,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
+# 从user模块导入Campus模型
+from app.modules.user.models import Campus
 
 
-class Major(db.Model):
-    """专业模型"""
-    __tablename__ = 'majors'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # 关系
-    school = db.relationship('School', backref='majors')
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'school_id': self.school_id,
-            'school_name': self.school.name if self.school else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
+# 从user模块导入Major模型
+from app.modules.user.models import Major
 
 
-class ItemCategory(db.Model):
-    """商品分类模型"""
-    __tablename__ = 'item_categories'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('item_categories.id'))
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # 关系
-    parent = db.relationship('ItemCategory', remote_side=[id], backref='children')
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'parent_id': self.parent_id,
-            'parent_name': self.parent.name if self.parent else None,
-            'description': self.description,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
+# 商品分类模型已在item模块中定义，此处移除重复定义
 
 
 class SystemLog(db.Model):
