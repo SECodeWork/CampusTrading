@@ -4,9 +4,12 @@ from app import db
 
 class ItemCategory(db.Model):
     """商品分类模型"""
+    __tablename__ = 'item_categories'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    parent_id = db.Column(db.Integer, db.ForeignKey('item_category.id'))
+    parent_id = db.Column(db.Integer, db.ForeignKey('item_categories.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 自引用关系
@@ -16,6 +19,9 @@ class ItemCategory(db.Model):
 
 class Item(db.Model):
     """商品模型"""
+    __tablename__ = 'items'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
@@ -23,8 +29,8 @@ class Item(db.Model):
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待审核), active(上架中), sold(已售出), rented(已出租), removed(已下架)
     
     # 校园属性
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('item_category.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('item_categories.id'), nullable=False)
     
     # 商品信息
     condition = db.Column(db.String(20))  # 成色：全新、九成新、八成新等
@@ -47,7 +53,7 @@ class Item(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime)  # 审核时间
-    reviewed_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # 审核人
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'))  # 审核人
     
     # 关系
     item_images = db.relationship('ItemImage', backref='item', lazy=True, cascade='all, delete-orphan')
@@ -85,8 +91,11 @@ class Item(db.Model):
 
 class ItemImage(db.Model):
     """商品图片模型"""
+    __tablename__ = 'item_images'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     url = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

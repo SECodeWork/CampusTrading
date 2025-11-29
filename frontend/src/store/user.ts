@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import request from '../api/request';
+import { login as authLogin } from '../api/auth';
 
 // 用户类型定义
 interface User {
@@ -86,13 +86,30 @@ export const useUserStore = defineStore('user', {
         this.loading = true;
         this.error = null;
         
-        const response = await request.post('/auth/login', credentials);
-        const { token, user } = response.data;
+        // 使用auth.ts中导出的login函数，避免路径错误
+        const response = await authLogin(credentials.username, credentials.password);
         
-        this.setToken(token);
-        this.setUserInfo(user);
+        // 根据后端实际返回的数据结构进行处理
+        // 后端返回的是access_token字段（无user字段）
+        if (response.access_token) {
+          this.setToken(response.access_token);
+          // 创建一个基本的用户信息对象，使用登录表单中的用户名
+          this.setUserInfo({ 
+            id: '', 
+            username: credentials.username, 
+            nickname: credentials.username, 
+            avatar: '', 
+            email: '', 
+            phone: '', 
+            role: 'user', 
+            created_at: '', 
+            updated_at: '' 
+          });
+          
+          return { success: true, user: this.user };
+        }
         
-        return { success: true, user };
+        throw new Error('登录失败，未收到有效响应');
       } catch (error: any) {
         this.error = error.response?.data?.message || '登录失败，请检查用户名和密码';
         return { success: false, error: this.error };

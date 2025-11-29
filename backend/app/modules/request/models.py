@@ -4,16 +4,19 @@ from app import db
 
 class ItemRequest(db.Model):
     """求购信息模型"""
+    __tablename__ = 'item_requests'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     expected_price = db.Column(db.Integer, nullable=False)  # 期望价格（虚拟币）
-    category_id = db.Column(db.Integer, db.ForeignKey('item_category.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('item_categories.id'), nullable=False)
     
     # 专业和校区范围
-    major_id = db.Column(db.Integer, db.ForeignKey('major.id'))  # 所需专业
-    campus_id = db.Column(db.Integer, db.ForeignKey('campus.id'))  # 校区范围
+    major_id = db.Column(db.Integer, db.ForeignKey('majors.id'))  # 所需专业
+    campus_id = db.Column(db.Integer, db.ForeignKey('campuses.id'))  # 校区范围
     
     # 状态
     status = db.Column(db.String(20), nullable=False, default='active')  # active(有效), matched(已匹配), canceled(已取消)
@@ -45,9 +48,12 @@ class ItemRequest(db.Model):
 
 class RequestResponse(db.Model):
     """求购响应模型"""
+    __tablename__ = 'request_responses'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.Integer, db.ForeignKey('item_request.id'), nullable=False)
-    responder_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    request_id = db.Column(db.Integer, db.ForeignKey('item_requests.id'), nullable=False)
+    responder_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     offer_amount = db.Column(db.Integer, nullable=False)  # 报价金额
     message = db.Column(db.Text)  # 附加消息
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending(待买家确认), accepted(已接受), rejected(已拒绝)

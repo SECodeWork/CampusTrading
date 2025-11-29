@@ -5,6 +5,9 @@ from app import db
 
 class School(db.Model):
     """学校模型"""
+    __tablename__ = 'schools'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     province = db.Column(db.String(50), nullable=False)
@@ -17,9 +20,12 @@ class School(db.Model):
 
 class Campus(db.Model):
     """校区模型"""
+    __tablename__ = 'campuses'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -30,9 +36,12 @@ class Campus(db.Model):
 
 class Major(db.Model):
     """专业模型"""
+    __tablename__ = 'majors'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    campus_id = db.Column(db.Integer, db.ForeignKey('campus.id'), nullable=False)
+    campus_id = db.Column(db.Integer, db.ForeignKey('campuses.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -42,6 +51,9 @@ class Major(db.Model):
 
 class User(db.Model):
     """用户模型"""
+    __tablename__ = 'users'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -52,8 +64,8 @@ class User(db.Model):
     id_card_photo = db.Column(db.String(255))  # 学生证照片路径
     
     # 校园信息
-    campus_id = db.Column(db.Integer, db.ForeignKey('campus.id'))
-    major_id = db.Column(db.Integer, db.ForeignKey('major.id'))
+    campus_id = db.Column(db.Integer, db.ForeignKey('campuses.id'))
+    major_id = db.Column(db.Integer, db.ForeignKey('majors.id'))
     
     # 虚拟币
     coins = db.Column(db.Integer, default=0)
@@ -62,13 +74,7 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     
-    # 关系
-    items = db.relationship('Item', backref='user', lazy=True)
-    purchases = db.relationship('Transaction', foreign_keys='Transaction.buyer_id', backref='buyer', lazy=True)
-    sales = db.relationship('Transaction', foreign_keys='Transaction.seller_id', backref='seller', lazy=True)
-    requests = db.relationship('ItemRequest', backref='user', lazy=True)
-    offers_made = db.relationship('Offer', backref='buyer', lazy=True)
-    collections = db.relationship('Collection', backref='user', lazy=True)
+    # 关系 - 暂时移除所有关系定义以解决外键歧义问题
     
     @property
     def password(self):
@@ -99,8 +105,11 @@ class User(db.Model):
 
 class CoinLog(db.Model):
     """校园币变动记录"""
+    __tablename__ = 'coin_logs'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Integer, nullable=False)  # 变动数量，正数为增加，负数为减少
     type = db.Column(db.String(50), nullable=False)  # 类型：注册奖励、交易、评价奖励等
     related_id = db.Column(db.Integer)  # 关联的交易ID或其他ID
@@ -113,13 +122,18 @@ class CoinLog(db.Model):
 
 class Collection(db.Model):
     """用户收藏模型"""
+    __tablename__ = 'collections'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 关系
     item = db.relationship('Item', backref='collections')
     
     # 联合唯一约束
-    __table_args__ = (db.UniqueConstraint('user_id', 'item_id', name='_user_item_uc'),)
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'item_id', name='_user_item_uc'),
+        {'extend_existing': True}
+    )

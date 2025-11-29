@@ -18,9 +18,11 @@
     <div class="feature-nav">
       <div class="feature-item" v-for="feature in features" :key="feature.id">
         <router-link :to="feature.route">
+
           <div class="feature-icon">
             <el-icon :size="32"><component :is="feature.icon" /></el-icon>
           </div>
+>>>>>>> 43a95c22732f68082b5f5c17b4a1de71e0c1ab47
           <div class="feature-text">{{ feature.name }}</div>
         </router-link>
       </div>
@@ -112,9 +114,11 @@
     <!-- 平台优势区域 -->
     <section class="advantages-section">
       <div class="advantage-item" v-for="advantage in advantages" :key="advantage.id">
+
         <div class="advantage-icon">
           <el-icon :size="48"><component :is="advantage.icon" /></el-icon>
         </div>
+>>>>>>> 43a95c22732f68082b5f5c17b4a1de71e0c1ab47
         <h3 class="advantage-title">{{ advantage.title }}</h3>
         <p class="advantage-description">{{ advantage.description }}</p>
       </div>
@@ -133,6 +137,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { formatTime } from '@/utils/common';
+
+
 import { getHotItems, getLatestRequests, getHotCompareTasks, getPlatformStats } from '@/api/item';
 import {
   CirclePlus,
@@ -173,6 +179,7 @@ const carouselItems = ref([
 
 // 功能导航数据
 const features = ref([
+
   { id: 1, name: '发布商品', icon: CirclePlus, route: '/items/create' },
   { id: 2, name: '发布求购', icon: QuestionFilled, route: '/requests/create' },
   { id: 3, name: '发起比价', icon: Sort, route: '/compare/create' },
@@ -228,25 +235,32 @@ const hotCompareTasks = ref<CompareTask[]>([]);
 const advantages = ref([
   {
     id: 1,
+
     icon: Lock,
     title: '安全交易',
     description: '实名认证，交易保障，让您放心购买'
   },
   {
     id: 2,
+
     icon: Lightning,
+
     title: '快速发布',
     description: '简单几步，轻松发布您的闲置物品'
   },
   {
     id: 3,
+
     icon: PriceTag,
+
     title: '高性价比',
     description: '校园内交易，省去中间环节，价格更优惠'
   },
   {
     id: 4,
+
     icon: Headset,
+
     title: '贴心服务',
     description: '专业客服团队，7x12小时为您服务'
   }
@@ -271,9 +285,20 @@ onMounted(async () => {
     const requestsRes = await getLatestRequests({ limit: 5 });
     latestRequests.value = requestsRes.data || mockLatestRequests;
     
-    // 加载热门比价任务
-    const compareRes = await getHotCompareTasks({ limit: 4 });
-    hotCompareTasks.value = compareRes.data || mockHotCompareTasks;
+    // 加载热门比价任务（修正路径为正确的API端点）
+    try {
+      const response = await fetch('/api/compare/hot?limit=4');
+      if (response.ok) {
+        const data = await response.json();
+        hotCompareTasks.value = data.data || mockHotCompareTasks;
+      } else {
+        console.warn('比价任务API请求失败，使用模拟数据');
+        hotCompareTasks.value = mockHotCompareTasks;
+      }
+    } catch (e) {
+      console.warn('比价任务API请求异常，使用模拟数据', e);
+      hotCompareTasks.value = mockHotCompareTasks;
+    }
     
     // 加载平台统计数据
     const statsRes = await getPlatformStats();

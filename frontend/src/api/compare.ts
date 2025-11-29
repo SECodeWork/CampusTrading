@@ -234,3 +234,4 @@ export const unlikeCompareTask = compareAPI.unlikeCompareTask;
 export const getCompareQuotes = compareAPI.getCompareQuotes;
 export const submitCompareQuote = compareAPI.submitCompareQuote;
 export const likeCompareComment = compareAPI.likeCompareComment;
+export const getHotCompareTasks = compareAPI.getHotCompareTasks;
