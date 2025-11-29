@@ -1,10 +1,11 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Flask
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 from app import db
 from app.modules.user.models import User, School, Campus, Major, CoinLog, Collection
+from app.modules.user.views import user_bp
 
 # 创建蓝图
 user_bp = Blueprint('user', __name__)
@@ -57,11 +58,37 @@ def login():
     """用户登录"""
     data = request.get_json()
     
-    # 检查用户是否存在
-    user = User.query.filter_by(email=data['email']).first()
+    # 添加调试信息
+    print(f"登录请求数据: {data}")
     
-    if not user or not user.verify_password(data['password']):
-        return jsonify({'message': '邮箱或密码错误'}), 401
+    # 检查必要字段
+    if 'username' not in data and 'email' not in data:
+        print("登录请求缺少username或email字段")
+        return jsonify({'message': '请提供用户名或邮箱'}), 400
+    
+    if 'password' not in data:
+        print("登录请求缺少password字段")
+        return jsonify({'message': '请提供密码'}), 400
+    
+    # 首先尝试通过username查找用户
+    user = None
+    if 'username' in data:
+        user = User.query.filter_by(username=data['username']).first()
+        print(f"通过username查找用户结果: {user}")
+    
+    # 如果通过username未找到用户，尝试通过email查找
+    if not user and 'email' in data:
+        user = User.query.filter_by(email=data['email']).first()
+        print(f"通过email查找用户结果: {user}")
+    
+    # 验证用户和密码
+    if not user:
+        print("用户不存在")
+        return jsonify({'message': '用户名/邮箱或密码错误'}), 401
+    
+    if not user.verify_password(data['password']):
+        print("密码错误")
+        return jsonify({'message': '用户名/邮箱或密码错误'}), 401
     
     # 更新最后登录时间
     user.last_login = datetime.utcnow()

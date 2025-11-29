@@ -1,6 +1,5 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
-import { useUserStore } from '../store';
 
 // 扩展axios配置接口
 interface RequestConfig extends InternalAxiosRequestConfig {
@@ -19,11 +18,12 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config: RequestConfig) => {
-    const userStore = useUserStore();
+    // 从localStorage获取token
+    const token = localStorage.getItem('token');
     
     // 如果有token，添加到请求头
-    if (userStore.token) {
-      config.headers.Authorization = `Bearer ${userStore.token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     
     // 添加loading状态
@@ -48,15 +48,13 @@ request.interceptors.response.use(
   (error) => {
     // 关闭loading状态
     
-    const userStore = useUserStore();
-    
     // 处理错误
     if (error.response) {
       // 服务器返回错误状态码
       switch (error.response.status) {
         case 401:
           // 未授权，清除token并跳转到登录页
-          userStore.clearToken();
+          localStorage.removeItem('token');
           if (window.location.pathname !== '/login') {
             window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
           }

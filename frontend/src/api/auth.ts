@@ -2,8 +2,10 @@ import request from './request';
 
 // 单独导出登录函数，供Login.vue使用
 export const login = (username: string, password: string) => {
-  // 后端登录API需要email参数，但前端使用username
-  return request.post('/user/login', { email: username, password });
+  // 后端登录API在user模块下，使用/user/login路径
+  // 注意：request.ts中已经配置了baseURL为'/api'，所以这里不需要再加/api前缀
+  // 后端实际期望接收username参数（views.py中的login函数通过username查询用户）
+  return request.post('/user/login', { username, password });
 };
 
 // 单独导出注册函数，供Register.vue使用

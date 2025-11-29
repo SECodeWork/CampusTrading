@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 from app import db
 from app.modules.admin.models import (
     AdminUser, ItemReview, Complaint, School, Campus,
-    Major, ItemCategory, SystemLog, SystemConfig
+    Major, SystemLog, SystemConfig
 )
+from app.modules.item.models import ItemCategory
 from app.modules.item.models import Item
 from app.modules.transaction.models import Transaction
 from app.modules.user.models import User

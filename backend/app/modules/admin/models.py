@@ -69,6 +69,7 @@ class ItemReview(db.Model):
 class Complaint(db.Model):
     """投诉模型"""
     __tablename__ = 'complaints'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -81,8 +82,8 @@ class Complaint(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # 关系
-    user = db.relationship('User', backref='complaints')
+    # 暂时移除user关系以解决冲突问题
+    # user = db.relationship('User', backref='complaints')
     admin = db.relationship('AdminUser', backref='handled_complaints')
     
     def to_dict(self):
@@ -131,30 +132,7 @@ class Complaint(db.Model):
         return result
 
 
-class ItemCategory(db.Model):
-    """商品分类模型"""
-    __tablename__ = 'item_categories'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('item_categories.id'))
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # 关系
-    parent = db.relationship('ItemCategory', remote_side=[id], backref='children')
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'parent_id': self.parent_id,
-            'parent_name': self.parent.name if self.parent else None,
-            'description': self.description,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
+# 商品分类模型已在item模块中定义，此处移除重复定义
 
 
 class SystemLog(db.Model):

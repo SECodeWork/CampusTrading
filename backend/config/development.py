@@ -4,9 +4,8 @@ class DevelopmentConfig:
     """开发环境配置"""
     DEBUG = True
     
-    # 数据库配置
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'mysql+pymysql://root:password@localhost:3306/campus_trading_dev'
+    # 使用MySQL数据库
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/campus_trading_dev'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT配置
