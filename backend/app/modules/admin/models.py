@@ -2,6 +2,7 @@ from datetime import datetime
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from app.modules.user.models import School, Campus, Major
 
 class AdminUser(db.Model, UserMixin):
     """管理员用户模型"""
@@ -129,18 +130,6 @@ class Complaint(db.Model):
                 }
         
         return result
-
-
-# 从user模块导入School模型
-from app.modules.user.models import School
-
-
-# 从user模块导入Campus模型
-from app.modules.user.models import Campus
-
-
-# 从user模块导入Major模型
-from app.modules.user.models import Major
 
 
 # 商品分类模型已在item模块中定义，此处移除重复定义

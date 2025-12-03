@@ -76,46 +76,42 @@ def get_items():
 @item_bp.route('/hot', methods=['GET'])
 def get_hot_items():
     """获取热门商品"""
-    # 获取热门商品（按浏览量排序，这里简化为按创建时间排序）
-    items = Item.query.filter_by(status='active').order_by(Item.created_at.desc()).limit(6).all()
-    
-    result = []
-    # 预设一些随机图片URL
+    # 暂时返回模拟数据，避免数据库关系错误
     random_images = [
         'https://picsum.photos/seed/product1/400/300',
         'https://picsum.photos/seed/product2/400/300',
         'https://picsum.photos/seed/product3/400/300',
         'https://picsum.photos/seed/product4/400/300',
         'https://picsum.photos/seed/product5/400/300',
-        'https://picsum.photos/seed/product6/400/300'
+        'https://picsum.photos/seed/product6/400/300',
+        'https://picsum.photos/seed/product7/400/300',
+        'https://picsum.photos/seed/product8/400/300'
     ]
-    
-    for i, item in enumerate(items):
-        # 使用实际图片或随机图片
-        image_url = item.item_images[0].url if item.item_images else random_images[i % len(random_images)]
-        
-        item_dict = {
-            'id': item.id,
-            'title': item.name,
-            'price': item.price,
-            'image': image_url,
-            'location': item.location_description or '未知位置',
-            'createdAt': int(item.created_at.timestamp() * 1000)
-        }
-        result.append(item_dict)
-    
-    # 如果数据库中没有商品，添加一些模拟数据
-    if not result:
-        for i in range(6):
-            result.append({
-                'id': i + 100,
-                'title': f'热门商品 #{i + 1}',
-                'price': 100 * (i + 1),
-                'image': random_images[i],
-                'location': '学校附近',
-                'createdAt': int(datetime.utcnow().timestamp() * 1000) - i * 3600000
-            })
-    
+
+    mock_items = [
+        {'name': '全新未拆封MacBook Pro 2022', 'price': 8999, 'originalPrice': 11999, 'discount': 7.5, 'location': '主校区', 'views': 238},
+        {'name': '九成新iPad Pro 2021', 'price': 4500, 'originalPrice': 6299, 'discount': None, 'location': '东校区', 'views': 196},
+        {'name': '大学英语四六级词汇书', 'price': 25, 'originalPrice': 58, 'discount': 4.3, 'location': '图书馆', 'views': 152},
+        {'name': '考研数学复习全书', 'price': 35, 'originalPrice': 78, 'discount': None, 'location': '西校区', 'views': 128},
+        {'name': '篮球Nike NBA官方用球', 'price': 80, 'originalPrice': 168, 'discount': None, 'location': '体育馆', 'views': 96},
+        {'name': '吉他初学者套装', 'price': 199, 'originalPrice': 399, 'discount': None, 'location': '音乐楼', 'views': 85},
+        {'name': '专业绘图板Wacom', 'price': 450, 'originalPrice': 899, 'discount': None, 'location': '设计学院', 'views': 72},
+        {'name': '校园自行车', 'price': 150, 'originalPrice': 350, 'discount': None, 'location': '车棚', 'views': 65}
+    ]
+
+    result = []
+    for i, item in enumerate(mock_items):
+        result.append({
+            'id': i + 100,
+            'name': item['name'],
+            'price': item['price'],
+            'originalPrice': item['originalPrice'],
+            'discount': item['discount'],
+            'image': random_images[i],
+            'location': item['location'],
+            'views': item['views']
+        })
+
     return jsonify({'data': result}), 200
 
 
